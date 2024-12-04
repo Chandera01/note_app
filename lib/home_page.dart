@@ -1,5 +1,7 @@
 import 'package:database_exp/db_helper.dart';
+import 'package:database_exp/note_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -12,7 +14,10 @@ class _HomePageState extends State<HomePage> {
   TextEditingController descController = TextEditingController();
 
   DbHelper dbHelper = DbHelper.instance;
-  List<Map<String, dynamic>> mData = [];
+  List<Notemodel> mData = [];
+ /* String duedate = "";
+  DateFormat dtformt = DateFormat.MMMMEEEEd();*/
+
 
   @override
   void initState() {
@@ -36,8 +41,14 @@ class _HomePageState extends State<HomePage> {
               itemBuilder: (_, index) {
                 return ListTile(
                   leading: Text('${index+1}'),  //Text(mData[index]["n_id"].toString()),
-                  title: Text(mData[index]["n_title"]),
-                  subtitle: Text(mData[index]["n_desc"]),
+                  title: Text(mData[index].titile),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(mData[index].desc),
+                      // Text(dtformt.format(DateTime.fromMicrosecondsSinceEpoch(int.parse(mData[index][DbHelper.Table_Column_Created_At]))))
+                    ],
+                  ),
                   trailing: SizedBox(
                     width: 100,
                     child: Row(
@@ -45,8 +56,8 @@ class _HomePageState extends State<HomePage> {
                         IconButton(
                             onPressed: () {
 
-                              titilecontroller.text = mData[index]["n_title"];
-                              descController.text = mData[index]["n_desc"];
+                              titilecontroller.text = mData[index].titile;
+                              descController.text = mData[index].desc;
 
                               showModalBottomSheet(
                                   enableDrag: false,
@@ -117,7 +128,7 @@ class _HomePageState extends State<HomePage> {
                                                       bool check = await dbHelper.updatenote(
                                                           title: titilecontroller.text.toString(),
                                                               desc: descController.text.toString(),
-                                                              id: mData[index]["n_id"]);
+                                                              id: mData[index].id!);
 
                                                       if (check) {
                                                         Navigator.pop(context);
@@ -149,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                             icon: Icon(Icons.edit)),
                         IconButton(
                             onPressed: () async {
-                            bool check = await  dbHelper.deleatenote(id: mData[index]["n_id"]);
+                            bool check = await  dbHelper.deleatenote(id: mData[index].id!);
                             if(check){
                               getNotes();
                             }
@@ -221,7 +232,16 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
+                      ),SizedBox(
+                        height: 10,
                       ),
+                        OutlinedButton(onPressed: ()async{
+                     DateTime ? SelectedDate = await showDatePicker(context: context,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2030,12,22));
+                          print(SelectedDate!.microsecondsSinceEpoch.toString());
+                          // duedate = SelectedDate.microsecondsSinceEpoch.toString();
+                        }, child: Text("ChooseDate")),
                       SizedBox(
                         height: 10,
                       ),
@@ -233,8 +253,11 @@ class _HomePageState extends State<HomePage> {
                                 if (titilecontroller.text.isNotEmpty &&
                                     descController.text.isNotEmpty) {
                                   bool check = await dbHelper.addNote(
-                                      titile: titilecontroller.text.toString(),
-                                      desc: descController.text.toString());
+                                    Notemodel(titile: titilecontroller.text.toString(), desc: descController.text.toString())
+                                     /* titile: titilecontroller.text.toString(),
+                                      desc: descController.text.toString(),
+                                      // duedateAt: duedate,*/
+                                  );
 
                                   if (check) {
                                     Navigator.pop(context);
